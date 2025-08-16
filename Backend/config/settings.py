@@ -85,21 +85,34 @@ CORS_ALLOWED_ORIGINS = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": os.environ["DB_NAME"],  # getenv -> environ
-        "USER": os.environ["DB_USER"],  # getenv -> environ
-        "PASSWORD": os.environ["DB_PASSWORD"],  # getenv -> environ
-        "HOST": "db",
-        "PORT": "3306",
+        "NAME": os.getenv("DB_NAME", "ticket_db"),  # 환경 변수가 없으면 기본값 사용
+        "USER": os.getenv("DB_USER", "user"),  # 환경 변수가 없으면 기본값 사용
+        "PASSWORD": os.getenv(
+            "DB_PASSWORD", "password"
+        ),  # 환경 변수가 없으면 기본값 사용
+        "HOST": os.getenv("DB_HOST", "db"),
+        "PORT": os.getenv("DB_PORT", "3306"),
         "OPTIONS": {"init_command": "SET sql_mode='STRICT_TRANS_TABLES'"},
     }
 }
 
 # 테스트 DB 설정도 동일하게 수정합니다.
 DATABASES["default"]["TEST"] = {
-    "NAME": f"test_{os.environ['DB_NAME']}",
-    "USER": os.environ["DB_USER"],
-    "PASSWORD": os.environ["DB_PASSWORD"],
+    "NAME": f"test_{os.getenv('DB_NAME', 'ticket_db')}",
+    "USER": os.getenv("DB_USER", "user"),
+    "PASSWORD": os.getenv("DB_PASSWORD", "password"),
 }
+
+# 테스트 환경에서 SQLite 사용 (환경 변수가 없을 때)
+import sys
+
+if "test" in sys.argv:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": "test_db.sqlite3",
+        }
+    }
 
 ROOT_URLCONF = "config.urls"
 

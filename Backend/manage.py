@@ -4,10 +4,6 @@
 import os
 import sys
 
-from django_stubs_ext import monkeypatch
-
-monkeypatch()
-
 
 def main():
     """Run administrative tasks."""
