@@ -1,0 +1,32 @@
+# pyproject.toml
+
+# 1. Ruff (Linter + Formatter) 설정
+[tool.ruff]
+# 한 줄의 최대 길이를 88자로 제한 (black의 기본값)
+line-length = 100
+# 린팅에서 제외할 폴더나 파일 지정
+exclude = [
+    ".venv",
+    "migrations",
+]
+
+[tool.ruff.lint]
+# 적용할 린팅 규칙 세트
+# 기존 [tool.ruff]에 있던 select를 여기로 옮깁니다.
+select = ["E", "W", "F", "I"]
+
+# Ruff 포매터 설정 (Black과 호환)
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+check_untyped_defs = true
+disable_error_code = ["assignment"]
+
+# 3. django-stubs 플러그인 설정
+[tool.django-stubs]
+django_settings_module = "config.settings"

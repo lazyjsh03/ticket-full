@@ -10,14 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
 import os
-from dotenv import load_dotenv
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
@@ -68,9 +65,9 @@ SPECTACULAR_SETTINGS = {
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -78,21 +75,32 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
 ]
 
 # 데이터베이스 설정 (MySQL)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": os.getenv("MYSQL_DATABASE"),  # 생성한 DB 이름
-        "USER": os.getenv("MYSQL_USER"),  # DB 사용자 이름
-        "PASSWORD": os.getenv("MYSQL_PASSWORD"),  # DB 비밀번호
-        "HOST": "db",  # DB 호스트
+        "NAME": os.environ["DB_NAME"],  # getenv -> environ
+        "USER": os.environ["DB_USER"],  # getenv -> environ
+        "PASSWORD": os.environ["DB_PASSWORD"],  # getenv -> environ
+        "HOST": "db",
         "PORT": "3306",
         "OPTIONS": {"init_command": "SET sql_mode='STRICT_TRANS_TABLES'"},
     }
+}
+
+# 테스트 DB 설정도 동일하게 수정합니다.
+DATABASES["default"]["TEST"] = {
+    "NAME": f"test_{os.environ['DB_NAME']}",
+    "USER": os.environ["DB_USER"],
+    "PASSWORD": os.environ["DB_PASSWORD"],
 }
 
 ROOT_URLCONF = "config.urls"
@@ -118,12 +126,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+# MySQL 설정이 위에 이미 정의되어 있음
 
 
 # Password validation
