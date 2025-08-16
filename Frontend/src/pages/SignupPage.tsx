@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { InlineSpinner } from '../components/LoadingSpinner';
 
 const SignupPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -8,7 +10,6 @@ const SignupPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -19,26 +20,25 @@ const SignupPage: React.FC = () => {
 
     // 입력값 검증
     if (!username.trim() || !password.trim() || !confirmPassword.trim()) {
-      setError('모든 필수 항목을 입력해주세요.');
+      toast.error('모든 필수 항목을 입력해주세요.');
       console.log('입력값 검증 실패: 빈 필드');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('비밀번호가 일치하지 않습니다.');
+      toast.error('비밀번호가 일치하지 않습니다.');
       console.log('입력값 검증 실패: 비밀번호 불일치');
       return;
     }
 
     if (password.length < 6) {
-      setError('비밀번호는 최소 6자 이상이어야 합니다.');
+      toast.error('비밀번호는 최소 6자 이상이어야 합니다.');
       console.log('입력값 검증 실패: 비밀번호 길이 부족');
       return;
     }
 
     console.log('입력값 검증 통과, 회원가입 시도');
     setIsLoading(true);
-    setError('');
 
     try {
       console.log('AuthContext signup 함수 호출');
@@ -47,17 +47,18 @@ const SignupPage: React.FC = () => {
 
       if (success) {
         console.log('회원가입 + 자동 로그인 성공, 메인 페이지로 이동');
+        toast.success('회원가입이 완료되었습니다! 자동으로 로그인되었습니다.');
         // 회원가입 성공 시 자동 로그인되어 메인 페이지로 이동
         navigate('/');
       } else {
         console.log('회원가입 실패');
-        setError('회원가입에 실패했습니다. 다시 시도해주세요.');
+        toast.error('회원가입에 실패했습니다. 다시 시도해주세요.');
       }
     } catch (err: unknown) {
       console.error('회원가입 중 예외 발생:', err);
       const errorMessage =
         err instanceof Error ? err.message : '회원가입 중 오류가 발생했습니다.';
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
       console.log('회원가입 프로세스 완료');
@@ -150,19 +151,20 @@ const SignupPage: React.FC = () => {
             </div>
           </div>
 
-          {error && (
-            <div className="rounded-md bg-red-50 p-3 text-center text-sm text-red-600">
-              {error}
-            </div>
-          )}
-
           <div>
             <button
               type="submit"
               disabled={isLoading}
               className="flex w-full justify-center rounded-lg border border-transparent bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isLoading ? '가입 중...' : '회원가입'}
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <InlineSpinner size="small" />
+                  <span>가입 중...</span>
+                </div>
+              ) : (
+                '회원가입'
+              )}
             </button>
           </div>
 

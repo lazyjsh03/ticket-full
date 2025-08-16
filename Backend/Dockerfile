@@ -21,7 +21,12 @@ COPY requirements.txt .
 RUN uv pip install --system --no-cache-dir -r requirements.txt
 
 # 7. 프로젝트 소스 코드 복사
-COPY . .
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 # 8. 컨테이너가 시작될 때 8000번 포트를 외부에 노출
 EXPOSE 8000

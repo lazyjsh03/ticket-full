@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { useReservation } from '../contexts/ReservationContext';
 import { seatsAPI } from '../api/services';
+import LoadingSpinner from '../components/LoadingSpinner';
 import type { Seat } from '../types';
+import type { ApiError } from '../api/client';
 
 const SeatSelectionPage: React.FC = () => {
   const [seats, setSeats] = useState<Seat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
 
   const { setSelectedSeat: setGlobalSelectedSeat } = useReservation();
@@ -21,8 +23,31 @@ const SeatSelectionPage: React.FC = () => {
         const seatsData = await seatsAPI.getSeats();
         setSeats(seatsData);
       } catch (err) {
-        setError('좌석 정보를 불러오는데 실패했습니다.');
-        console.error('Failed to fetch seats:', err);
+        console.error('좌석 정보 로딩 에러 상세:', err);
+
+        // ApiError 타입인지 확인
+        if (
+          err &&
+          typeof err === 'object' &&
+          'status' in err &&
+          'message' in err
+        ) {
+          const apiError = err as ApiError;
+
+          if (apiError.isServerError) {
+            toast.error(`${apiError.message} (오류 코드: ${apiError.status})`);
+            toast.error('잠시 후 다시 시도해주세요.', { duration: 4000 });
+          } else if (apiError.isNetworkError) {
+            toast.error(apiError.message);
+            toast.error('인터넷 연결을 확인하고 다시 시도해주세요.', {
+              duration: 4000,
+            });
+          } else {
+            toast.error(apiError.message);
+          }
+        } else {
+          toast.error('좌석 정보를 불러오는데 실패했습니다.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -69,7 +94,7 @@ const SeatSelectionPage: React.FC = () => {
           const isReserved = seat.is_reserved;
 
           let seatClass =
-            'w-20 h-20 m-2 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer transition-all duration-200 transform hover:scale-105 ';
+            'w-16 h-16 m-1 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer transition-all duration-200 transform hover:scale-105 sm:w-20 sm:h-20 sm:m-2 ';
 
           if (isReserved) {
             seatClass += 'bg-gray-400 cursor-not-allowed hover:scale-100';
@@ -87,8 +112,8 @@ const SeatSelectionPage: React.FC = () => {
               title={`${row}행 ${col}열 - 좌석 ${seatNumber}번`}
             >
               <div className="text-center">
-                <div className="text-sm">{seatNumber}</div>
-                <div className="text-xs">
+                <div className="text-xs sm:text-sm">{seatNumber}</div>
+                <div className="text-xs opacity-75">
                   {row}-{col}
                 </div>
               </div>
@@ -103,62 +128,43 @@ const SeatSelectionPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="mb-4 text-xl">좌석 정보를 불러오는 중...</div>
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="mb-4 text-xl text-red-600">{error}</div>
-          <button
-            onClick={() => window.location.reload()}
-            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-          >
-            다시 시도
-          </button>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <LoadingSpinner size="large" text="좌석 정보를 불러오는 중..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="container mx-auto px-4">
-        <div className="mb-8 text-center">
-          <h1 className="mb-4 text-3xl font-bold text-gray-800">좌석 선택</h1>
-          <p className="text-gray-600">
+        <div className="mb-6 text-center sm:mb-8">
+          <h1 className="mb-2 text-2xl font-bold text-gray-800 sm:mb-4 sm:text-3xl">
+            좌석 선택
+          </h1>
+          <p className="text-sm text-gray-600 sm:text-base">
             원하는 좌석을 선택하고 예매를 진행하세요
           </p>
         </div>
 
         {/* 좌석 상태 안내 */}
-        <div className="mb-8 flex justify-center">
-          <div className="flex space-x-6">
-            <div className="flex items-center">
-              <div className="mr-2 h-6 w-6 rounded bg-blue-500"></div>
-              <span className="text-sm text-gray-700">예약 가능</span>
-            </div>
-            <div className="flex items-center">
-              <div className="mr-2 h-6 w-6 rounded bg-green-500"></div>
-              <span className="text-sm text-gray-700">선택됨</span>
-            </div>
-            <div className="flex items-center">
-              <div className="mr-2 h-6 w-6 rounded bg-gray-400"></div>
-              <span className="text-sm text-gray-700">예약됨</span>
-            </div>
+        <div className="mb-6 flex flex-wrap justify-center gap-3 sm:mb-8 sm:gap-6">
+          <div className="flex items-center">
+            <div className="mr-2 h-4 w-4 rounded bg-blue-500 sm:h-6 sm:w-6"></div>
+            <span className="text-xs text-gray-700 sm:text-sm">예약 가능</span>
+          </div>
+          <div className="flex items-center">
+            <div className="mr-2 h-4 w-4 rounded bg-green-500 sm:h-6 sm:w-6"></div>
+            <span className="text-xs text-gray-700 sm:text-sm">선택됨</span>
+          </div>
+          <div className="flex items-center">
+            <div className="mr-2 h-4 w-4 rounded bg-gray-400 sm:h-6 sm:w-6"></div>
+            <span className="text-xs text-gray-700 sm:text-sm">예약됨</span>
           </div>
         </div>
 
         {/* 좌석 격자 */}
-        <div className="mb-8 flex justify-center">
-          <div className="grid grid-cols-3 gap-2 rounded-lg bg-white p-6 shadow-lg">
+        <div className="mb-6 flex justify-center sm:mb-8">
+          <div className="grid grid-cols-3 gap-1 rounded-lg bg-white p-3 shadow-lg sm:gap-2 sm:p-6">
             {renderSeatGrid()}
           </div>
         </div>
@@ -166,8 +172,8 @@ const SeatSelectionPage: React.FC = () => {
         {/* 예매 정보 확인 버튼 */}
         <div className="text-center">
           {selectedSeat ? (
-            <div className="space-y-4">
-              <p className="text-lg text-gray-700">
+            <div className="space-y-3 sm:space-y-4">
+              <p className="text-base text-gray-700 sm:text-lg">
                 선택된 좌석:{' '}
                 <span className="font-bold text-blue-600">
                   {selectedSeat}번
@@ -175,13 +181,15 @@ const SeatSelectionPage: React.FC = () => {
               </p>
               <button
                 onClick={handleReservation}
-                className="rounded-lg bg-green-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-colors hover:bg-green-700 hover:shadow-xl"
+                className="w-full rounded-lg bg-green-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors hover:bg-green-700 hover:shadow-xl sm:w-auto sm:px-8 sm:text-lg"
               >
                 선택 확정
               </button>
             </div>
           ) : (
-            <p className="text-gray-500">예매할 좌석을 선택해주세요</p>
+            <p className="text-sm text-gray-500 sm:text-base">
+              예매할 좌석을 선택해주세요
+            </p>
           )}
         </div>
       </div>

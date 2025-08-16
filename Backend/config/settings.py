@@ -77,10 +77,8 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 # 데이터베이스 설정 (MySQL)
@@ -169,3 +167,41 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    # 로그 메시지 형식 정의
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+    },
+    # 로그를 처리하는 방식 정의 (어디에, 어떻게 남길지)
+    "handlers": {
+        # 콘솔(터미널)에 로그를 출력하는 핸들러
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        # 파일에 에러 로그를 기록하는 핸들러
+        "file": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": BASE_DIR / "logs/error.log",  # 1단계에서 만든 logs 폴더
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 5,
+            "formatter": "verbose",
+        },
+    },
+    # 어떤 로거를 사용할지 정의
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file"],  # 콘솔과 파일에 모두 기록
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+}

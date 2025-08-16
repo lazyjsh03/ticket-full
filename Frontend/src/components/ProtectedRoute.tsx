@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import LoadingSpinner from './LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -19,8 +20,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-xl">로딩 중...</div>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <LoadingSpinner size="large" text="인증 상태를 확인하는 중..." />
       </div>
     );
   }

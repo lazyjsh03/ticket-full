@@ -2,7 +2,12 @@
 
 from django.urls import path
 
-from .views import ReserveSeatView, SeatCancelView, SeatListView, SeatResetView
+from .views import (
+    ReserveSeatView,
+    SeatCancelView,
+    SeatListView,
+    SeatResetView,
+)
 
 urlpatterns = [
     path("seats/", SeatListView.as_view(), name="seat-list"),

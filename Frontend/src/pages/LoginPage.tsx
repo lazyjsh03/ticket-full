@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { InlineSpinner } from '../components/LoadingSpinner';
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -21,14 +22,13 @@ const LoginPage: React.FC = () => {
     console.log('로그인 폼 제출 시작');
 
     if (!username.trim() || !password.trim()) {
-      setError('아이디와 비밀번호를 모두 입력해주세요.');
+      toast.error('아이디와 비밀번호를 모두 입력해주세요.');
       console.log('입력값 검증 실패: 빈 필드');
       return;
     }
 
     console.log('입력값 검증 통과, 로그인 시도');
     setIsLoading(true);
-    setError('');
 
     try {
       console.log('AuthContext login 함수 호출');
@@ -37,16 +37,17 @@ const LoginPage: React.FC = () => {
 
       if (success) {
         console.log('로그인 성공, 페이지 이동:', from);
+        toast.success('로그인되었습니다!');
         navigate(from, { replace: true });
       } else {
         console.log('로그인 실패: 잘못된 credentials');
-        setError('아이디 또는 비밀번호가 올바르지 않습니다.');
+        toast.error('아이디 또는 비밀번호가 올바르지 않습니다.');
       }
     } catch (err: unknown) {
       console.error('로그인 중 예외 발생:', err);
       const errorMessage =
         err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.';
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
       console.log('로그인 프로세스 완료');
@@ -102,19 +103,20 @@ const LoginPage: React.FC = () => {
             </div>
           </div>
 
-          {error && (
-            <div className="rounded-md bg-red-50 p-3 text-center text-sm text-red-600">
-              {error}
-            </div>
-          )}
-
           <div>
             <button
               type="submit"
               disabled={isLoading}
               className="flex w-full justify-center rounded-lg border border-transparent bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isLoading ? '로그인 중...' : '로그인'}
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <InlineSpinner size="small" />
+                  <span>로그인 중...</span>
+                </div>
+              ) : (
+                '로그인'
+              )}
             </button>
           </div>
 
